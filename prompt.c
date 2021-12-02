@@ -1,6 +1,29 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-static char input[2048];
+#ifdef _WIN32
+#include <string.h>
+
+static char buffer[2048];
+
+/* Fake readline function */
+char *readline(char *prompt)
+{
+  fputs(prompt, stdout);
+  fgets(buffer, 2048, stdin);
+  char *cpy = malloc(strlen(buffer) + 1);
+  strcpy(cpy, buffer);
+  cpy[strlen(cpy) - 1] = '\0';
+  return cpy;
+}
+
+/* Fake add_history function */
+void add_history(char *unused) {}
+
+/* Otherwise include the editline headers */
+#else
+#include <editline/readline.h>
+#endif
 
 int main(int argc, char const *argv[])
 {
@@ -9,12 +32,11 @@ int main(int argc, char const *argv[])
 
   while (1)
   {
-    fputs("alisp> ", stdout);
-
-    /*User input maximum size is 2048 */
-    fgets(input, 2048, stdin);
-
+    char *input = readline("alisp> ");
+    add_history(input);
     printf("No you're a %s", input);
+
+    free(input);
   }
 
   return 0;
