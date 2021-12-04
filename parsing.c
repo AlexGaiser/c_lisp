@@ -50,8 +50,31 @@ int main(int argc, char const *argv[])
   {
     char *input = readline("alisp> ");
     add_history(input);
-    printf("No you're a %s", input);
+    mpc_result_t r;
+    if (mpc_parse("<stdin>", input, Lispy, &r))
+    {
+      /* On Success Print the AST */
+      mpc_ast_t *a = r.output;
+      printf("Tag: %s\n", a->tag);
+      printf("Contents %s\n", a->contents);
+      printf("Num Children: %i\n", a->children_num);
 
+      // Getting child nodes
+
+      // first child:
+      mpc_ast_t *c0 = a->children[0];
+      printf("First Child Contents: %s\n", c0->contents);
+      printf("First Child Number of children: %i\n", c0->children_num);
+
+      mpc_ast_print(r.output);
+      mpc_ast_delete(r.output);
+    }
+    else
+    {
+      /* Otherwise Print the Error */
+      mpc_err_print(r.error);
+      mpc_err_delete(r.error);
+    }
     free(input);
   }
   mpc_cleanup(4, Number, Operator, Expr, Lispy);
