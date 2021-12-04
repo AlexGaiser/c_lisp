@@ -26,6 +26,27 @@ void add_history(char *unused) {}
 #include <editline/readline.h>
 #endif
 
+int number_of_nodes(mpc_ast_t *t)
+{
+  int children_num = t->children_num;
+  if (children_num == 0)
+  {
+    return 1;
+  }
+
+  if (children_num >= 1)
+  {
+    int total = 1;
+
+    for (int i = 0; i < children_num; i++)
+    {
+      total = total + number_of_nodes(t->children[i]);
+    }
+    return total;
+  }
+  return 0;
+}
+
 int main(int argc, char const *argv[])
 {
   /* Create Some Parsers */
@@ -66,6 +87,8 @@ int main(int argc, char const *argv[])
       printf("First Child Contents: %s\n", c0->contents);
       printf("First Child Number of children: %i\n", c0->children_num);
 
+      int total_nodes = number_of_nodes(a);
+      printf("total number of nodes is: %i", total_nodes);
       mpc_ast_print(r.output);
       mpc_ast_delete(r.output);
     }
