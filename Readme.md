@@ -7,5 +7,5 @@ A repository for a Lisp written in the C programming language. Handles compilati
 
 ## Usage
 
-To run the Lisp shell, open your terminal and run `sh start.sh`
+To run the Lisp shell, open your terminal and run `sh ./start.sh`
 
