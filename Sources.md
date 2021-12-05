@@ -6,3 +6,5 @@
 
 ## C Syntax
 
+## Strings
+- [String Methods TutorialsPoint](https://www.tutorialspoint.com/cprogramming/c_strings.htm)
