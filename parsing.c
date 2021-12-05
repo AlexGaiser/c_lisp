@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mpc.h"
+// #include <string.h>
 
 #ifdef _WIN32
 #include <string.h>
@@ -83,6 +84,7 @@ long eval(mpc_ast_t *t)
     x = eval_op(x, op, eval(t->children[i]));
     i++;
   }
+  return x;
 }
 
 int main(int argc, char const *argv[])
@@ -113,21 +115,9 @@ int main(int argc, char const *argv[])
     if (mpc_parse("<stdin>", input, Lispy, &r))
     {
       /* On Success Print the AST */
-      mpc_ast_t *a = r.output;
-      printf("Tag: %s\n", a->tag);
-      printf("Contents %s\n", a->contents);
-      printf("Num Children: %i\n", a->children_num);
+      long result = eval(r.output);
+      printf("%li\n", result);
 
-      // Getting child nodes
-
-      // first child:
-      mpc_ast_t *c0 = a->children[0];
-      printf("First Child Contents: %s\n", c0->contents);
-      printf("First Child Number of children: %i\n", c0->children_num);
-
-      int total_nodes = number_of_nodes(a);
-      printf("total number of nodes is: %i", total_nodes);
-      mpc_ast_print(r.output);
       mpc_ast_delete(r.output);
     }
     else
