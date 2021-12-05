@@ -27,6 +27,47 @@ void add_history(char *unused) {}
 #include <editline/readline.h>
 #endif
 
+enum
+{
+  LVAL_NUM,
+  LVAL_ERR
+};
+enum
+{
+  LERR_DIV_ZERO,
+  LERR_BAD_OP,
+  LERR_BAD_NUM
+};
+
+typedef struct
+{
+  int type;
+  long num;
+  int err;
+} lval;
+
+// Functions for constructing our Lisp Values (from structs)
+
+lval create_lval_num(long value)
+{
+  lval val;
+  val.type = LVAL_NUM;
+  val.num = value;
+  // val.err = NULL;
+
+  return val;
+}
+
+lval create_lval_error(int ecode)
+{
+  lval val;
+  val.err = ecode;
+  val.type = LVAL_ERR;
+  // val.num = NULL;
+
+  return val;
+}
+
 int number_of_nodes(mpc_ast_t *t)
 {
   int children_num = t->children_num;
@@ -47,44 +88,89 @@ int number_of_nodes(mpc_ast_t *t)
   }
   return 0;
 }
-long eval_op(long x, char *op, long y)
+
+void lval_print(lval v)
 {
+  switch (v.type)
+  {
+  // If receive number, just print it immediately;
+  case LVAL_NUM:
+    printf("%li\n", v.num);
+    break;
+
+  // If receive error, we handle appropriately, printing the correct error
+  case LVAL_ERR:
+    if (v.err == LERR_DIV_ZERO)
+    {
+      printf("Error: Division By Zero!\n");
+    }
+    if (v.err == LERR_BAD_OP)
+    {
+      printf("Error: Invalid Operator!\n");
+    }
+    if (v.err == LERR_BAD_NUM)
+    {
+      printf("Error: Invalid Number!\n");
+    }
+    break;
+  }
+}
+lval eval_op(lval x, char *op, lval y)
+{
+
+  if (x.type == LVAL_ERR)
+  {
+    return x;
+  }
+  if (y.type == LVAL_ERR)
+  {
+    return y;
+  }
+
   if (strcmp(op, "+") == 0)
   {
-    return x + y;
+    return create_lval_num(x.num + y.num);
   }
   if (strcmp(op, "-") == 0)
   {
-    return x - y;
+    return create_lval_num(x.num - y.num);
   }
   if (strcmp(op, "*") == 0)
   {
-    return x * y;
+    return create_lval_num(x.num * y.num);
   }
   if (strcmp(op, "/") == 0)
   {
-    return x / y;
+    return y.num == 0
+               ? create_lval_error(LERR_DIV_ZERO)
+               : create_lval_num(x.num / y.num);
   }
-  return 0;
+  return create_lval_error(LERR_BAD_OP);
 }
 
-long eval(mpc_ast_t *t)
+lval eval(mpc_ast_t *t)
 {
   if (strstr(t->tag, "number"))
   {
-    return atoi(t->contents);
+    errno = 0;
+    long n = strtol(t->contents, NULL, 10);
+    return errno != ERANGE
+               ? create_lval_num(n)
+               : create_lval_error(LERR_BAD_NUM);
   }
+
   char *op = t->children[1]->contents; // operator is always second child
-  long x = eval(t->children[2]);       // we store the third child in x
+
+  lval val = eval(t->children[2]); // we store the third child in val
 
   int i = 3;
 
   while (strstr(t->children[i]->tag, "expr"))
   {
-    x = eval_op(x, op, eval(t->children[i]));
+    val = eval_op(val, op, eval(t->children[i]));
     i++;
   }
-  return x;
+  return val;
 }
 
 int main(int argc, char const *argv[])
@@ -104,7 +190,7 @@ int main(int argc, char const *argv[])
     lispy    : /^/ <operator> <expr>+ /$/ ;             \
   ",
             Number, Operator, Expr, Lispy);
-  puts("A_Lisp Version 0.0.0.0.1");
+  puts("A_Lisp Version 0.0.0.0.4");
   puts("Press Ctrl+c to Exit\n");
 
   while (1)
@@ -114,15 +200,15 @@ int main(int argc, char const *argv[])
     mpc_result_t r;
     if (mpc_parse("<stdin>", input, Lispy, &r))
     {
-      /* On Success Print the AST */
-      long result = eval(r.output);
-      printf("%li\n", result);
+      // On Success Print the Result!
+      lval result = eval(r.output);
+      lval_print(result);
 
       mpc_ast_delete(r.output);
     }
     else
     {
-      /* Otherwise Print the Error */
+      // If Error, print it here
       mpc_err_print(r.error);
       mpc_err_delete(r.error);
     }
