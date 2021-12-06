@@ -248,64 +248,6 @@ void lval_del(lval *v)
   free(v);
 }
 
-// lval *eval_op(lval x, char *op, lval y)
-// {
-
-//   if (x.type == LVAL_ERR)
-//   {
-//     return x;
-//   }
-//   if (y.type == LVAL_ERR)
-//   {
-//     return y;
-//   }
-
-//   if (strcmp(op, "+") == 0)
-//   {
-//     return create_lval_num(x.num + y.num);
-//   }
-//   if (strcmp(op, "-") == 0)
-//   {
-//     return create_lval_num(x.num - y.num);
-//   }
-//   if (strcmp(op, "*") == 0)
-//   {
-//     return create_lval_num(x.num * y.num);
-//   }
-//   if (strcmp(op, "/") == 0)
-//   {
-//     return y.num == 0
-//                ? create_lval_error(LERR_DIV_ZERO)
-//                : create_lval_num(x.num / y.num);
-//   }
-//   return create_lval_error(LERR_BAD_OP);
-// }
-
-// lval eval(mpc_ast_t *t)
-// {
-//   if (strstr(t->tag, "number"))
-//   {
-//     errno = 0;
-//     long n = strtol(t->contents, NULL, 10);
-//     return errno != ERANGE
-//                ? create_lval_num(n)
-//                : create_lval_error(LERR_BAD_NUM);
-//   }
-
-//   char *op = t->children[1]->contents; // operator is always second child
-
-//   lval val = eval(t->children[2]); // we store the third child in val
-
-//   int i = 3;
-
-//   while (strstr(t->children[i]->tag, "expr"))
-//   {
-//     val = eval_op(val, op, eval(t->children[i]));
-//     i++;
-//   }
-//   return val;
-// }
-
 lval *lval_eval_sexpr(lval *v);
 
 lval *lval_eval(lval *v)
